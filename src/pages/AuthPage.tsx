@@ -7,7 +7,7 @@ import { LabeledInput } from "../components/ui/LabeledInput";
 import { getErrorMessage } from "../utils/error";
 
 export function AuthPage() {
-  const { isAuthenticated, signIn } = useAuth();
+  const { isAuthenticated, isLoading, signIn } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
@@ -15,6 +15,14 @@ export function AuthPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-[#f8faf7] px-6 text-sm text-stone-500">
+        Loading session...
+      </div>
+    );
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/meetings" replace />;

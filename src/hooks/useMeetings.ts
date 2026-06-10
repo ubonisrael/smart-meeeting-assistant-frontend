@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
-import { useAccessToken } from "./useAuth";
+import { useAuth } from "./useAuth";
 
 export const meetingKeys = {
   all: ["meetings"] as const,
@@ -12,62 +12,61 @@ export const meetingKeys = {
 };
 
 export function useMeetings() {
-  const token = useAccessToken();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: meetingKeys.lists(),
-    queryFn: () => api.listMeetings(token),
-    enabled: Boolean(token),
+    queryFn: () => api.listMeetings(),
+    enabled: isAuthenticated,
     refetchInterval: 8000
   });
 }
 
 export function useMeeting(meetingId?: string) {
-  const token = useAccessToken();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: meetingKeys.detail(meetingId ?? ""),
-    queryFn: () => api.getMeeting(token, meetingId ?? ""),
-    enabled: Boolean(token && meetingId)
+    queryFn: () => api.getMeeting(meetingId ?? ""),
+    enabled: Boolean(isAuthenticated && meetingId)
   });
 }
 
 export function useMeetingTranscript(meetingId?: string) {
-  const token = useAccessToken();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: meetingKeys.transcript(meetingId ?? ""),
-    queryFn: () => api.getTranscript(token, meetingId ?? ""),
-    enabled: Boolean(token && meetingId)
+    queryFn: () => api.getTranscript(meetingId ?? ""),
+    enabled: Boolean(isAuthenticated && meetingId)
   });
 }
 
 export function useMeetingSummary(meetingId?: string) {
-  const token = useAccessToken();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: meetingKeys.summary(meetingId ?? ""),
-    queryFn: () => api.getSummary(token, meetingId ?? ""),
-    enabled: Boolean(token && meetingId)
+    queryFn: () => api.getSummary(meetingId ?? ""),
+    enabled: Boolean(isAuthenticated && meetingId)
   });
 }
 
 export function useMeetingActionItems(meetingId?: string) {
-  const token = useAccessToken();
+  const { isAuthenticated } = useAuth();
 
   return useQuery({
     queryKey: meetingKeys.actionItems(meetingId ?? ""),
-    queryFn: () => api.getActionItems(token, meetingId ?? ""),
-    enabled: Boolean(token && meetingId)
+    queryFn: () => api.getActionItems(meetingId ?? ""),
+    enabled: Boolean(isAuthenticated && meetingId)
   });
 }
 
 export function useUploadMeeting() {
-  const token = useAccessToken();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: { title: string; file: File }) => api.uploadMeeting(token, input),
+    mutationFn: (input: { title: string; file: File }) => api.uploadMeeting(input),
     onSuccess() {
       void queryClient.invalidateQueries({ queryKey: meetingKeys.lists() });
     }
@@ -75,10 +74,8 @@ export function useUploadMeeting() {
 }
 
 export function useAskMeetings() {
-  const token = useAccessToken();
-
   return useMutation({
-    mutationFn: (question: string) => api.ask(token, question)
+    mutationFn: (question: string) => api.ask(question)
   });
 }
 

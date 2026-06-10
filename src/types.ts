@@ -6,8 +6,6 @@ export type User = {
 
 export type AuthSession = {
   user: User;
-  accessToken: string;
-  refreshToken: string;
 };
 
 export type Meeting = {
@@ -53,4 +51,3 @@ export type AskSource = {
   segmentEnd?: string | number | null;
   text: string;
 };
-

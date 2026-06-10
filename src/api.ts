@@ -1,6 +1,12 @@
+import axios from "axios";
 import type { ActionItem, AskSource, AuthSession, Meeting, Summary, TranscriptSegment } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api";
+
+const client = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: true
+});
 
 export class ApiError extends Error {
   constructor(
@@ -11,102 +17,90 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
-  const headers = new Headers(options.headers);
-  if (!(options.body instanceof FormData)) {
-    headers.set("Content-Type", "application/json");
-  }
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
+async function request<T>(path: string, options: { method?: string; data?: unknown } = {}): Promise<T> {
+  try {
+    const response = await client.request<T>({
+      url: path,
+      method: options.method ?? "GET",
+      data: options.data
+    });
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers
-  });
+    return response.data;
+  } catch (caught) {
+    if (axios.isAxiosError(caught)) {
+      const status = caught.response?.status ?? 0;
+      const responseData = caught.response?.data;
+      const message =
+        typeof responseData === "object" && responseData && "error" in responseData
+          ? String(responseData.error)
+          : typeof responseData === "string" && responseData
+            ? responseData
+            : caught.message || "Request failed";
 
-  if (!response.ok) {
-    let message = "Request failed";
-    try {
-      const body = await response.json();
-      message = body.error ?? message;
-    } catch {
-      message = await response.text();
+      throw new ApiError(message, status);
     }
-    throw new ApiError(message, response.status);
-  }
 
-  if (response.status === 204) {
-    return undefined as T;
+    throw caught;
   }
-
-  return (await response.json()) as T;
 }
 
 export const api = {
   register(input: { name: string; email: string; password: string }) {
     return request<AuthSession>("/auth/register", {
       method: "POST",
-      body: JSON.stringify(input)
+      data: input
     });
   },
   login(input: { email: string; password: string }) {
     return request<AuthSession>("/auth/login", {
       method: "POST",
-      body: JSON.stringify(input)
+      data: input
     });
   },
-  listMeetings(token: string) {
-    return request<{ meetings: Meeting[] }>("/meetings", {}, token);
+  me() {
+    return request<AuthSession>("/auth/me");
   },
-  uploadMeeting(token: string, input: { title: string; file: File }) {
+  logout() {
+    return request<void>("/auth/logout", {
+      method: "POST"
+    });
+  },
+  listMeetings() {
+    return request<{ meetings: Meeting[] }>("/meetings");
+  },
+  uploadMeeting(input: { title: string; file: File }) {
     const form = new FormData();
     form.append("title", input.title);
     form.append("recording", input.file);
-    return request<{ meetingId: string; status: string }>(
-      "/meetings/upload",
-      {
-        method: "POST",
-        body: form
-      },
-      token
-    );
+    return request<{ meetingId: string; status: string }>("/meetings/upload", {
+      method: "POST",
+      data: form
+    });
   },
-  getMeeting(token: string, meetingId: string) {
-    return request<{ meeting: Meeting }>(`/meetings/${meetingId}`, {}, token);
+  getMeeting(meetingId: string) {
+    return request<{ meeting: Meeting }>(`/meetings/${meetingId}`);
   },
-  getTranscript(token: string, meetingId: string) {
+  getTranscript(meetingId: string) {
     return request<{ transcript: { id: string; text: string; language?: string } | null; segments: TranscriptSegment[] }>(
-      `/meetings/${meetingId}/transcript`,
-      {},
-      token
+      `/meetings/${meetingId}/transcript`
     );
   },
-  getSummary(token: string, meetingId: string) {
-    return request<{ summary: Summary | null }>(`/meetings/${meetingId}/summary`, {}, token);
+  getSummary(meetingId: string) {
+    return request<{ summary: Summary | null }>(`/meetings/${meetingId}/summary`);
   },
-  getActionItems(token: string, meetingId: string) {
-    return request<{ actionItems: ActionItem[] }>(`/meetings/${meetingId}/action-items`, {}, token);
+  getActionItems(meetingId: string) {
+    return request<{ actionItems: ActionItem[] }>(`/meetings/${meetingId}/action-items`);
   },
-  search(token: string, query: string) {
-    return request<{ results: AskSource[] }>(
-      "/meetings/search",
-      {
-        method: "POST",
-        body: JSON.stringify({ query })
-      },
-      token
-    );
+  search(query: string) {
+    return request<{ results: AskSource[] }>("/meetings/search", {
+      method: "POST",
+      data: { query }
+    });
   },
-  ask(token: string, question: string) {
-    return request<{ answer: string; sources: AskSource[] }>(
-      "/meetings/ask",
-      {
-        method: "POST",
-        body: JSON.stringify({ question })
-      },
-      token
-    );
+  ask(question: string) {
+    return request<{ answer: string; sources: AskSource[] }>("/meetings/ask", {
+      method: "POST",
+      data: { question }
+    });
   }
 };
-
