@@ -2,11 +2,24 @@ export type User = {
   id: string;
   email: string;
   name: string;
+  emailVerifiedAt: string | null;
+  twoFactorEnabled: boolean;
 };
 
 export type AuthSession = {
   user: User;
 };
+
+export type RegisterResponse = AuthSession & {
+  emailVerificationRequired: boolean;
+};
+
+export type LoginResponse =
+  | AuthSession
+  | {
+      twoFactorRequired: true;
+      challengeToken: string;
+    };
 
 export type Meeting = {
   id: string;

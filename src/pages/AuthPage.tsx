@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { FileAudio } from "lucide-react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../hooks/useAuth";
 import { LabeledInput } from "../components/ui/LabeledInput";
 import { getErrorMessage } from "../utils/error";
+import type { LoginResponse } from "../types";
 
 export function AuthPage() {
   const { isAuthenticated, isLoading, signIn } = useAuth();
@@ -13,7 +14,10 @@ export function AuthPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [twoFactorChallenge, setTwoFactorChallenge] = useState("");
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
 
   if (isLoading) {
@@ -31,17 +35,48 @@ export function AuthPage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
+    setStatus("");
     setLoading(true);
 
     try {
-      const session =
-        mode === "register"
-          ? await api.register({ name, email, password })
-          : await api.login({ email, password });
-      signIn(session);
+      if (mode === "register") {
+        await api.register({ name, email, password });
+        setStatus("Account created. Check your email for a verification link before signing in.");
+        setMode("login");
+        setPassword("");
+        return;
+      }
+
+      const response = await api.login({ email, password });
+      if (isTwoFactorResponse(response)) {
+        setTwoFactorChallenge(response.challengeToken);
+        setPassword("");
+        return;
+      }
+
+      signIn(response);
       navigate("/meetings", { replace: true });
     } catch (caught) {
       setError(getErrorMessage(caught, "Authentication failed"));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function submitTwoFactor(event: FormEvent) {
+    event.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const session = await api.verifyTwoFactorLogin({
+        challengeToken: twoFactorChallenge,
+        code: twoFactorCode
+      });
+      signIn(session);
+      navigate("/meetings", { replace: true });
+    } catch (caught) {
+      setError(getErrorMessage(caught, "Two-factor verification failed"));
     } finally {
       setLoading(false);
     }
@@ -70,48 +105,79 @@ export function AuthPage() {
       </section>
 
       <section className="flex items-center px-6 py-10">
-        <form onSubmit={submit} className="w-full">
+        <form onSubmit={twoFactorChallenge ? submitTwoFactor : submit} className="w-full">
           <div className="mb-6 inline-flex rounded-md border border-stone-300 bg-white p-1">
             <button
               type="button"
               className={`rounded px-3 py-2 text-sm font-medium ${mode === "login" ? "bg-ink text-white" : "text-stone-600"}`}
-              onClick={() => setMode("login")}
+              onClick={() => {
+                setMode("login");
+                setTwoFactorChallenge("");
+                setError("");
+              }}
             >
               Login
             </button>
             <button
               type="button"
               className={`rounded px-3 py-2 text-sm font-medium ${mode === "register" ? "bg-ink text-white" : "text-stone-600"}`}
-              onClick={() => setMode("register")}
+              onClick={() => {
+                setMode("register");
+                setTwoFactorChallenge("");
+                setError("");
+              }}
             >
               Register
             </button>
           </div>
 
-          <h1 className="text-2xl font-semibold">{mode === "login" ? "Welcome back" : "Create account"}</h1>
-          <div className="mt-6 space-y-4">
-            {mode === "register" && (
-              <LabeledInput label="Name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" />
-            )}
-            <LabeledInput label="Email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" type="email" />
-            <LabeledInput
-              label="Password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              type="password"
-            />
-          </div>
+          <h1 className="text-2xl font-semibold">{twoFactorChallenge ? "Enter two-factor code" : mode === "login" ? "Welcome back" : "Create account"}</h1>
+          {twoFactorChallenge ? (
+            <div className="mt-6 space-y-4">
+              <LabeledInput
+                label="Authenticator code"
+                value={twoFactorCode}
+                onChange={(event) => setTwoFactorCode(event.target.value)}
+                autoComplete="one-time-code"
+                inputMode="numeric"
+              />
+            </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              {mode === "register" && (
+                <LabeledInput label="Name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" />
+              )}
+              <LabeledInput label="Email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" type="email" />
+              <LabeledInput
+                label="Password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete={mode === "login" ? "current-password" : "new-password"}
+                type="password"
+              />
+            </div>
+          )}
 
           {error && <p className="mt-4 rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm text-coral">{error}</p>}
+          {status && <p className="mt-4 rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm text-moss">{status}</p>}
 
           <button className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f]" disabled={loading}>
-            {loading ? "Working..." : mode === "login" ? "Login" : "Register"}
+            {loading ? "Working..." : twoFactorChallenge ? "Verify code" : mode === "login" ? "Login" : "Register"}
           </button>
+          {!twoFactorChallenge && (
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-600">
+              <Link className="font-medium text-moss hover:underline" to="/forgot-password">Forgot password?</Link>
+              <Link className="font-medium text-moss hover:underline" to="/resend-verification">Resend verification email</Link>
+            </div>
+          )}
         </form>
       </section>
     </div>
   );
+}
+
+function isTwoFactorResponse(response: LoginResponse): response is { twoFactorRequired: true; challengeToken: string } {
+  return "twoFactorRequired" in response;
 }
 
 function Signal({ label, value }: { label: string; value: string }) {

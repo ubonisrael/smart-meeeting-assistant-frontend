@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { ActionItem, AskSource, AuthSession, Meeting, Summary, TranscriptSegment } from "./types";
+import type { ActionItem, AskSource, AuthSession, LoginResponse, Meeting, RegisterResponse, Summary, TranscriptSegment } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 
@@ -46,13 +46,43 @@ async function request<T>(path: string, options: { method?: string; data?: unkno
 
 export const api = {
   register(input: { name: string; email: string; password: string }) {
-    return request<AuthSession>("/auth/register", {
+    return request<RegisterResponse>("/auth/register", {
       method: "POST",
       data: input
     });
   },
   login(input: { email: string; password: string }) {
-    return request<AuthSession>("/auth/login", {
+    return request<LoginResponse>("/auth/login", {
+      method: "POST",
+      data: input
+    });
+  },
+  verifyTwoFactorLogin(input: { challengeToken: string; code: string }) {
+    return request<AuthSession>("/auth/login/2fa", {
+      method: "POST",
+      data: input
+    });
+  },
+  verifyEmail(token: string) {
+    return request<AuthSession>("/auth/email/verify", {
+      method: "POST",
+      data: { token }
+    });
+  },
+  resendVerification(email: string) {
+    return request<void>("/auth/email/resend", {
+      method: "POST",
+      data: { email }
+    });
+  },
+  forgotPassword(email: string) {
+    return request<void>("/auth/password/forgot", {
+      method: "POST",
+      data: { email }
+    });
+  },
+  resetPassword(input: { token: string; password: string }) {
+    return request<void>("/auth/password/reset", {
       method: "POST",
       data: input
     });
@@ -101,6 +131,35 @@ export const api = {
     return request<{ answer: string; sources: AskSource[] }>("/meetings/ask", {
       method: "POST",
       data: { question }
+    });
+  },
+  updateProfile(input: { name: string }) {
+    return request<AuthSession>("/auth/profile", {
+      method: "PATCH",
+      data: input
+    });
+  },
+  updatePassword(input: { currentPassword: string; newPassword: string }) {
+    return request<void>("/auth/password", {
+      method: "PATCH",
+      data: input
+    });
+  },
+  setupTwoFactor() {
+    return request<{ secret: string; otpauthUrl: string }>("/auth/2fa/setup", {
+      method: "POST"
+    });
+  },
+  enableTwoFactor(code: string) {
+    return request<AuthSession>("/auth/2fa/enable", {
+      method: "POST",
+      data: { code }
+    });
+  },
+  disableTwoFactor(input: { password: string; code: string }) {
+    return request<AuthSession>("/auth/2fa/disable", {
+      method: "POST",
+      data: input
     });
   }
 };

@@ -1,4 +1,4 @@
-import { FileAudio, ListChecks, LogOut, MessageSquareText, Upload } from "lucide-react";
+import { FileAudio, ListChecks, LogOut, MessageSquareText, Settings, Upload } from "lucide-react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../../hooks/useAuth";
@@ -30,6 +30,7 @@ export function AppLayout() {
             <NavItem to="/meetings" icon={<ListChecks size={18} />} label="Meetings" />
             <NavItem to="/upload" icon={<Upload size={18} />} label="Upload" />
             <NavItem to="/ask" icon={<MessageSquareText size={18} />} label="Ask" />
+            <NavItem to="/settings" icon={<Settings size={18} />} label="Settings" />
             <button
               className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-stone-300 bg-white px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
               onClick={() => void handleSignOut()}
