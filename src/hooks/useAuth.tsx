@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api } from "../api";
-import type { AuthSession } from "../types";
 
 type AuthContextValue = {
   session: AuthSession | null;

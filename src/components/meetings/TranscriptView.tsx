@@ -1,5 +1,4 @@
 import { formatTime } from "../../utils/format";
-import type { TranscriptSegment } from "../../types";
 
 export function TranscriptView({ segments }: { segments: TranscriptSegment[] }) {
   if (!segments.length) {

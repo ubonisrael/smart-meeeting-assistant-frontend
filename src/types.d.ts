@@ -1,4 +1,4 @@
-export type User = {
+type User = {
   id: string;
   email: string;
   name: string;
@@ -6,22 +6,22 @@ export type User = {
   twoFactorEnabled: boolean;
 };
 
-export type AuthSession = {
+type AuthSession = {
   user: User;
 };
 
-export type RegisterResponse = AuthSession & {
+type RegisterResponse = AuthSession & {
   emailVerificationRequired: boolean;
 };
 
-export type LoginResponse =
+type LoginResponse =
   | AuthSession
   | {
       twoFactorRequired: true;
       challengeToken: string;
     };
 
-export type Meeting = {
+type Meeting = {
   id: string;
   title: string;
   status: string;
@@ -31,14 +31,14 @@ export type Meeting = {
   updatedAt: string;
 };
 
-export type TranscriptSegment = {
+type TranscriptSegment = {
   id: string;
   start: string | number;
   end: string | number;
   text: string;
 };
 
-export type Summary = {
+type Summary = {
   id: string;
   overview: string;
   decisions: string[];
@@ -47,7 +47,7 @@ export type Summary = {
   createdAt: string;
 };
 
-export type ActionItem = {
+type ActionItem = {
   id: string;
   assignee?: string | null;
   task: string;
@@ -57,7 +57,7 @@ export type ActionItem = {
   completedAt?: string | null;
 };
 
-export type AskSource = {
+type AskSource = {
   meetingId: string;
   title: string;
   segmentStart?: string | number | null;

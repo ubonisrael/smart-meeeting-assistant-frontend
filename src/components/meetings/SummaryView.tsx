@@ -1,5 +1,4 @@
 import { SummaryList } from "../ui/SummaryList";
-import type { Summary } from "../../types";
 
 export function SummaryView({ summary }: { summary: Summary | null }) {
   if (!summary) {

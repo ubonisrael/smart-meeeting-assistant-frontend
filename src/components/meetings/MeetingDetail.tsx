@@ -6,7 +6,6 @@ import { TranscriptView } from "./TranscriptView";
 import { useMeetingActionItems, useMeetingSummary, useMeetingTranscript, useRefreshMeetingDetails } from "../../hooks/useMeetings";
 import { StatusDot } from "../ui/StatusDot";
 import { TabButton } from "../ui/TabButton";
-import type { Meeting } from "../../types";
 
 type MeetingDetailProps = {
   meeting: Meeting;

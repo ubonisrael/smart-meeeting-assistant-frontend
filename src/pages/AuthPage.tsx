@@ -5,7 +5,6 @@ import { api } from "../api";
 import { useAuth } from "../hooks/useAuth";
 import { LabeledInput } from "../components/ui/LabeledInput";
 import { getErrorMessage } from "../utils/error";
-import type { LoginResponse } from "../types";
 
 export function AuthPage() {
   const { isAuthenticated, isLoading, signIn } = useAuth();

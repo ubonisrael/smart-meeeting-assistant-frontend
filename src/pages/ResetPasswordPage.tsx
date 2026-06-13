@@ -1,11 +1,12 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { LockKeyhole } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import { LabeledInput } from "../components/ui/LabeledInput";
 import { getErrorMessage } from "../utils/error";
 
 export function ResetPasswordPage() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const [password, setPassword] = useState("");
@@ -20,8 +21,9 @@ export function ResetPasswordPage() {
     setLoading(true);
     try {
       await api.resetPassword({ token, password });
-      setStatus("Password reset. You can now sign in.");
+      alert("Password reset. You can now sign in.")
       setPassword("");
+      navigate("/login")
     } catch (caught) {
       setError(getErrorMessage(caught, "Could not reset password"));
     } finally {

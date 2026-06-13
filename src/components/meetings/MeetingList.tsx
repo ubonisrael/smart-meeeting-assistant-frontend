@@ -1,7 +1,6 @@
 import { RefreshCw } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { StatusDot } from "../ui/StatusDot";
-import type { Meeting } from "../../types";
 
 type MeetingListProps = {
   meetings: Meeting[];

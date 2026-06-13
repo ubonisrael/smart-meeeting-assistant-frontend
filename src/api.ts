@@ -1,5 +1,4 @@
 import axios from "axios";
-import type { ActionItem, AskSource, AuthSession, LoginResponse, Meeting, RegisterResponse, Summary, TranscriptSegment } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 

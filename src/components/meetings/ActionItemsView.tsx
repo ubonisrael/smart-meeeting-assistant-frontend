@@ -1,5 +1,4 @@
 import { CheckCircle2 } from "lucide-react";
-import type { ActionItem } from "../../types";
 
 export function ActionItemsView({ actionItems }: { actionItems: ActionItem[] }) {
   if (!actionItems.length) {
