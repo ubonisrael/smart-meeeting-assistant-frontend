@@ -145,7 +145,7 @@ export const api = {
     });
   },
   setupTwoFactor() {
-    return request<{ secret: string; otpauthUrl: string }>("/auth/2fa/setup", {
+    return request<{ qrCodeUrl: string }>("/auth/2fa/setup", {
       method: "POST"
     });
   },
