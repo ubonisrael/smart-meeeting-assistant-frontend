@@ -24,12 +24,10 @@ export function useUpdateProfile() {
         description: "User profile has been updated successfully.",
       });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "Profile update failed",
-        description:
-          error.response?.data?.message ||
-          "Unable to update profile. Please try again.",
+        description: getErrorMessage(error, "Unable to update profile. Please try again."),
       });
     },
   });
@@ -52,12 +50,10 @@ export function useChangePassword() {
         description: "User's password has been updated successfully.",
       });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "Password update failed",
-        description:
-          error.response?.data?.message ||
-          "Unable to update password. Please try again.",
+        description: getErrorMessage(error, "Unable to update password. Please try again."),
       });
     },
   });
@@ -70,18 +66,16 @@ export function useLogOut() {
   return useMutation({
     mutationFn: () => api.logout(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.clear();
       showSuccess({
         title: "Logged out",
         description: "User successfully logged out.",
       });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "Sign out failed",
-        description:
-          error.response?.data?.message ||
-          "Unable to log out. Please try again.",
+        description: getErrorMessage(error, "Unable to log out. Please try again."),
       });
     },
   });
@@ -100,12 +94,10 @@ export function useLogin() {
         description: "User successfully logged in.",
       });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "Login failed",
-        description:
-          error.response?.data?.message ||
-          "Unable to log in. Please try again.",
+        description: getErrorMessage(error, "Unable to log in. Please try again."),
       });
     },
   });
@@ -121,12 +113,10 @@ export function useVerifyTwoFactorLogin() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "Two-factor verification failed",
-        description:
-          error.response?.data?.message ||
-          "Unable to verify two-factor code. Please try again.",
+        description: getErrorMessage(error, "Unable to verify two-factor code. Please try again."),
       });
     },
   });
@@ -139,12 +129,10 @@ export function use2FASetup() {
     onSuccess: (data: { qrCodeUrl: string }) => {
       return data;
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "2FA Setup failed",
-        description:
-          error.response?.data?.message ||
-          getErrorMessage(error, "Could not start two-factor setup"),
+        description: getErrorMessage(error, "Could not start two-factor setup"),
       });
     },
   });
@@ -162,12 +150,10 @@ export function useEnable2FA() {
         description: "Two-factor authentication enabled.",
       });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "2FA activation failed",
-        description:
-          error.response?.data?.message ||
-          getErrorMessage(error, "Could not enable two-factor authentication"),
+        description: getErrorMessage(error, "Could not enable two-factor authentication"),
       });
     },
   });
@@ -189,12 +175,10 @@ export function useDisable2FA() {
         description: "Two-factor authentication disabled.",
       });
     },
-    onError: (error: { response?: { data?: { message?: string } } }) => {
+    onError: (error: Error) => {
       showError({
         title: "2FA deactivation failed",
-        description:
-          error.response?.data?.message ||
-          getErrorMessage(error, "Could not disable two-factor authentication"),
+        description: getErrorMessage(error, "Could not disable two-factor authentication"),
       });
     },
   });
