@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { toast } from "sonner";
 
 type FeedbackState = {
   isOpen: boolean;
@@ -25,20 +26,18 @@ export const useFeedbackStore = create<FeedbackState & FeedbackActions>()(
     variant: "success",
     title: DEFAULT_SUCCESS_TITLE,
     description: DEFAULT_SUCCESS_DESCRIPTION,
-    showSuccess: (options) =>
-      set({
-        isOpen: true,
-        variant: "success",
-        title: options?.title || DEFAULT_SUCCESS_TITLE,
-        description: options?.description || DEFAULT_SUCCESS_DESCRIPTION,
-      }),
-    showError: (options) =>
-      set({
-        isOpen: true,
-        variant: "error",
-        title: options?.title || DEFAULT_ERROR_TITLE,
-        description: options?.description || DEFAULT_ERROR_DESCRIPTION,
-      }),
+    showSuccess: (options) => {
+      const title = options?.title || DEFAULT_SUCCESS_TITLE;
+      const description = options?.description || DEFAULT_SUCCESS_DESCRIPTION;
+      toast.success(title, { description });
+      set({ isOpen: true, variant: "success", title, description });
+    },
+    showError: (options) => {
+      const title = options?.title || DEFAULT_ERROR_TITLE;
+      const description = options?.description || DEFAULT_ERROR_DESCRIPTION;
+      toast.error(title, { description });
+      set({ isOpen: true, variant: "error", title, description });
+    },
     close: () => set({ isOpen: false }),
   }),
 );
