@@ -19,7 +19,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { use2FASetup, useDisable2FA } from "@/hooks/useProfile";
 import { QRCodeVerify } from "./qr-code-verify";
 
-export const twoFactorAuthSchema = z.object({
+const twoFactorAuthSchema = z.object({
   password: z.string().min(1).trim(),
   code: z.string().length(6).trim(),
 });
