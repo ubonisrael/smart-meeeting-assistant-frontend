@@ -7,6 +7,7 @@ import { useAuth } from "../hooks/useAuth";
 import { LabeledInput } from "../components/ui/LabeledInput";
 import { getErrorMessage } from "../utils/error";
 import { useVerifyTwoFactorLogin } from "@/hooks/useProfile";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 
 export function AuthPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -25,9 +26,7 @@ export function AuthPage() {
 
   if (isLoading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#f8faf7]">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-stone-200 border-t-moss" />
-      </div>
+      <LoadingSpinner />
     );
   }
 

@@ -35,7 +35,7 @@ export function AppLayout() {
             <NavItem to="/settings" icon={<Settings size={18} />} label="Settings" />
             <button
               className="focus-ring inline-flex h-10 items-center gap-2 rounded-md border border-stone-300 bg-white px-3 text-sm font-medium text-stone-700 hover:bg-stone-50"
-              onClick={() => void handleSignOut()}
+              onClick={() => handleSignOut()}
             >
               <LogOut size={18} />
               Sign out
