@@ -1,3 +1,9 @@
+type AuthContextValue = {
+  session: AuthSession | undefined;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+};
+
 type User = {
   id: string;
   email: string;
