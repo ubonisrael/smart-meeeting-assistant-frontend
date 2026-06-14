@@ -1,84 +1,99 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Field, Input } from "@chakra-ui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileAudio } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { api } from "../api";
 import { useAuth } from "../hooks/useAuth";
-import { LabeledInput } from "../components/ui/LabeledInput";
-import { getErrorMessage } from "../utils/error";
-import { useVerifyTwoFactorLogin } from "@/hooks/useProfile";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { useLogin, useRegister, useVerifyTwoFactorLogin } from "@/hooks/useProfile";
+import { Signal } from "@/components/ui/Signal";
+
+const loginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+const registerSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+const twoFactorSchema = z.object({
+  code: z.string().length(6, "Code must be 6 digits"),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
+type RegisterValues = z.infer<typeof registerSchema>;
+type TwoFactorValues = z.infer<typeof twoFactorSchema>;
+
+function isTwoFactorResponse(response: LoginResponse): response is { twoFactorRequired: true; challengeToken: string } {
+  return "twoFactorRequired" in response;
+}
 
 export function AuthPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const queryClient = useQueryClient();
-  const { mutateAsync: verifyTwoFactor } = useVerifyTwoFactorLogin();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [twoFactorCode, setTwoFactorCode] = useState("");
   const [twoFactorChallenge, setTwoFactorChallenge] = useState("");
-  const [error, setError] = useState("");
-  const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [registrationMessage, setRegistrationMessage] = useState("");
 
-  if (isLoading) {
-    return (
-      <LoadingSpinner />
-    );
-  }
+  const { mutateAsync: login, isPending: isLoginPending } = useLogin();
+  const { mutateAsync: register, isPending: isRegisterPending } = useRegister();
+  const { mutateAsync: verifyTwoFactor, isPending: isTwoFactorPending } = useVerifyTwoFactorLogin();
 
-  if (isAuthenticated) {
-    return <Navigate to="/meetings" replace />;
-  }
+  const loginForm = useForm<LoginValues>({ resolver: zodResolver(loginSchema) });
+  const registerForm = useForm<RegisterValues>({ resolver: zodResolver(registerSchema) });
+  const twoFactorForm = useForm<TwoFactorValues>({ resolver: zodResolver(twoFactorSchema) });
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-    setStatus("");
-    setLoading(true);
+  if (isLoading) return <LoadingSpinner />;
+  if (isAuthenticated) return <Navigate to="/meetings" replace />;
 
+  async function handleLogin({ email, password }: LoginValues) {
     try {
-      if (mode === "register") {
-        await api.register({ name, email, password });
-        setStatus("Account created. Check your email for a verification link before signing in.");
-        setMode("login");
-        setPassword("");
-        return;
-      }
-
-      const response = await api.login({ email, password });
+      const response = await login({ email, password });
       if (isTwoFactorResponse(response)) {
         setTwoFactorChallenge(response.challengeToken);
-        setPassword("");
+        loginForm.resetField("password");
         return;
       }
-
       await queryClient.refetchQueries({ queryKey: ["profile"] });
       navigate("/meetings", { replace: true });
-    } catch (caught) {
-      setError(getErrorMessage(caught, "Authentication failed"));
-    } finally {
-      setLoading(false);
+    } catch {
+      // hook's onError shows the toast
     }
   }
 
-  async function submitTwoFactor(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-    setLoading(true);
-
+  async function handleRegister(values: RegisterValues) {
     try {
-      await verifyTwoFactor({ challengeToken: twoFactorChallenge, code: twoFactorCode });
+      await register(values);
+      setRegistrationMessage("Account created. Check your email for a verification link before signing in.");
+      setMode("login");
+      registerForm.reset();
+    } catch {
+      // hook's onError shows the toast
+    }
+  }
+
+  async function handleTwoFactor({ code }: TwoFactorValues) {
+    try {
+      await verifyTwoFactor({ challengeToken: twoFactorChallenge, code });
       await queryClient.refetchQueries({ queryKey: ["profile"] });
       navigate("/meetings", { replace: true });
-    } catch (caught) {
-      setError(getErrorMessage(caught, "Two-factor verification failed"));
-    } finally {
-      setLoading(false);
+    } catch {
+      // hook's onError shows the toast
     }
+  }
+
+  function switchMode(newMode: "login" | "register") {
+    setMode(newMode);
+    setTwoFactorChallenge("");
+    loginForm.clearErrors();
+    registerForm.clearErrors();
   }
 
   return (
@@ -104,86 +119,143 @@ export function AuthPage() {
       </section>
 
       <section className="flex items-center px-6 py-10">
-        <form onSubmit={twoFactorChallenge ? submitTwoFactor : submit} className="w-full">
-          <div className="mb-6 inline-flex rounded-md border border-stone-300 bg-white p-1">
-            <button
-              type="button"
-              className={`rounded px-3 py-2 text-sm font-medium ${mode === "login" ? "bg-ink text-white" : "text-stone-600"}`}
-              onClick={() => {
-                setMode("login");
-                setTwoFactorChallenge("");
-                setError("");
-              }}
-            >
-              Login
-            </button>
-            <button
-              type="button"
-              className={`rounded px-3 py-2 text-sm font-medium ${mode === "register" ? "bg-ink text-white" : "text-stone-600"}`}
-              onClick={() => {
-                setMode("register");
-                setTwoFactorChallenge("");
-                setError("");
-              }}
-            >
-              Register
-            </button>
-          </div>
-
-          <h1 className="text-2xl font-semibold">{twoFactorChallenge ? "Enter two-factor code" : mode === "login" ? "Welcome back" : "Create account"}</h1>
-          {twoFactorChallenge ? (
-            <div className="mt-6 space-y-4">
-              <LabeledInput
-                label="Authenticator code"
-                value={twoFactorCode}
-                onChange={(event) => setTwoFactorCode(event.target.value)}
-                autoComplete="one-time-code"
-                inputMode="numeric"
-              />
-            </div>
-          ) : (
-            <div className="mt-6 space-y-4">
-              {mode === "register" && (
-                <LabeledInput label="Name" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" />
-              )}
-              <LabeledInput label="Email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" type="email" />
-              <LabeledInput
-                label="Password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                type="password"
-              />
-            </div>
-          )}
-
-          {error && <p className="mt-4 rounded-md border border-coral/30 bg-coral/10 px-3 py-2 text-sm text-coral">{error}</p>}
-          {status && <p className="mt-4 rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm text-moss">{status}</p>}
-
-          <button className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f]" disabled={loading}>
-            {loading ? "Working..." : twoFactorChallenge ? "Verify code" : mode === "login" ? "Login" : "Register"}
-          </button>
+        <div className="w-full">
           {!twoFactorChallenge && (
-            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-600">
-              <Link className="font-medium text-moss hover:underline" to="/forgot-password">Forgot password?</Link>
-              <Link className="font-medium text-moss hover:underline" to="/resend-verification">Resend verification email</Link>
+            <div className="mb-6 inline-flex rounded-md border border-stone-300 bg-white p-1">
+              <button
+                type="button"
+                className={`rounded px-3 py-2 text-sm font-medium ${mode === "login" ? "bg-ink text-white" : "text-stone-600"}`}
+                onClick={() => switchMode("login")}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                className={`rounded px-3 py-2 text-sm font-medium ${mode === "register" ? "bg-ink text-white" : "text-stone-600"}`}
+                onClick={() => switchMode("register")}
+              >
+                Register
+              </button>
             </div>
           )}
-        </form>
+
+          <h1 className="text-2xl font-semibold">
+            {twoFactorChallenge ? "Enter two-factor code" : mode === "login" ? "Welcome back" : "Create account"}
+          </h1>
+
+          {twoFactorChallenge ? (
+            <form onSubmit={twoFactorForm.handleSubmit(handleTwoFactor)} className="mt-6">
+              <div className="space-y-4">
+                <Field.Root invalid={!!twoFactorForm.formState.errors.code}>
+                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Authenticator code</Field.Label>
+                  <Input
+                    {...twoFactorForm.register("code")}
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
+                  />
+                  <Field.ErrorText className="mt-1 text-xs text-coral">
+                    {twoFactorForm.formState.errors.code?.message}
+                  </Field.ErrorText>
+                </Field.Root>
+              </div>
+              <button
+                type="submit"
+                disabled={isTwoFactorPending}
+                className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f] disabled:opacity-60"
+              >
+                {isTwoFactorPending ? "Verifying..." : "Verify code"}
+              </button>
+            </form>
+          ) : mode === "login" ? (
+            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="mt-6">
+              <div className="space-y-4">
+                <Field.Root invalid={!!loginForm.formState.errors.email}>
+                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Email</Field.Label>
+                  <Input
+                    {...loginForm.register("email")}
+                    type="email"
+                    autoComplete="email"
+                  />
+                  <Field.ErrorText className="mt-1 text-xs text-coral">
+                    {loginForm.formState.errors.email?.message}
+                  </Field.ErrorText>
+                </Field.Root>
+                <Field.Root invalid={!!loginForm.formState.errors.password}>
+                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Password</Field.Label>
+                  <Input
+                    {...loginForm.register("password")}
+                    type="password"
+                    autoComplete="current-password"
+                  />
+                  <Field.ErrorText className="mt-1 text-xs text-coral">
+                    {loginForm.formState.errors.password?.message}
+                  </Field.ErrorText>
+                </Field.Root>
+              </div>
+              {registrationMessage && (
+                <p className="mt-4 rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm text-moss">
+                  {registrationMessage}
+                </p>
+              )}
+              <button
+                type="submit"
+                disabled={isLoginPending}
+                className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f] disabled:opacity-60"
+              >
+                {isLoginPending ? "Working..." : "Login"}
+              </button>
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-600">
+                <Link className="font-medium text-moss hover:underline" to="/forgot-password">Forgot password?</Link>
+                <Link className="font-medium text-moss hover:underline" to="/resend-verification">Resend verification email</Link>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={registerForm.handleSubmit(handleRegister)} className="mt-6">
+              <div className="space-y-4">
+                <Field.Root invalid={!!registerForm.formState.errors.name}>
+                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Name</Field.Label>
+                  <Input
+                    {...registerForm.register("name")}
+                    autoComplete="name"
+                  />
+                  <Field.ErrorText className="mt-1 text-xs text-coral">
+                    {registerForm.formState.errors.name?.message}
+                  </Field.ErrorText>
+                </Field.Root>
+                <Field.Root invalid={!!registerForm.formState.errors.email}>
+                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Email</Field.Label>
+                  <Input
+                    {...registerForm.register("email")}
+                    type="email"
+                    autoComplete="email"
+                  />
+                  <Field.ErrorText className="mt-1 text-xs text-coral">
+                    {registerForm.formState.errors.email?.message}
+                  </Field.ErrorText>
+                </Field.Root>
+                <Field.Root invalid={!!registerForm.formState.errors.password}>
+                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Password</Field.Label>
+                  <Input
+                    {...registerForm.register("password")}
+                    type="password"
+                    autoComplete="new-password"
+                  />
+                  <Field.ErrorText className="mt-1 text-xs text-coral">
+                    {registerForm.formState.errors.password?.message}
+                  </Field.ErrorText>
+                </Field.Root>
+              </div>
+              <button
+                type="submit"
+                disabled={isRegisterPending}
+                className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f] disabled:opacity-60"
+              >
+                {isRegisterPending ? "Working..." : "Register"}
+              </button>
+            </form>
+          )}
+        </div>
       </section>
-    </div>
-  );
-}
-
-function isTwoFactorResponse(response: LoginResponse): response is { twoFactorRequired: true; challengeToken: string } {
-  return "twoFactorRequired" in response;
-}
-
-function Signal({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border-t border-white/20 pt-3">
-      <p className="text-xs uppercase text-white/60">{label}</p>
-      <p className="mt-1 font-medium">{value}</p>
     </div>
   );
 }

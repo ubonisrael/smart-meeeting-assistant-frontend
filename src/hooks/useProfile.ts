@@ -85,13 +85,28 @@ export function useLogOut() {
   });
 }
 
+export function useRegister() {
+  const { showError } = useFeedbackDialog();
+
+  return useMutation({
+    mutationFn: (input: { name: string; email: string; password: string }) => api.register(input),
+    onError: (error: Error) => {
+      showError({
+        title: "Registration failed",
+        description: getErrorMessage(error, "Unable to create account. Please try again."),
+      });
+    },
+  });
+}
+
 export function useLogin() {
   const queryClient = useQueryClient();
   const { showError, showSuccess } = useFeedbackDialog();
 
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) => api.login({ email, password }),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if ("twoFactorRequired" in data) return;
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       showSuccess({
         title: "User Logged In",
