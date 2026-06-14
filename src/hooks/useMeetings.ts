@@ -11,6 +11,8 @@ export const meetingKeys = {
   actionItems: (meetingId: string) => [...meetingKeys.all, "action-items", meetingId] as const
 };
 
+const IN_PROGRESS_STATUSES = new Set(["uploaded", "processing", "transcribing", "summarizing", "extracting_action_items"]);
+
 export function useMeetings() {
   const { isAuthenticated } = useAuth();
 
@@ -18,7 +20,11 @@ export function useMeetings() {
     queryKey: meetingKeys.lists(),
     queryFn: () => api.listMeetings(),
     enabled: isAuthenticated,
-    refetchInterval: 8000
+    refetchInterval: (query) => {
+      const data = query.state.data as { meetings: Meeting[] } | undefined;
+      const hasInProgress = data?.meetings.some((m) => IN_PROGRESS_STATUSES.has(m.status));
+      return hasInProgress ? 8000 : false;
+    }
   });
 }
 
