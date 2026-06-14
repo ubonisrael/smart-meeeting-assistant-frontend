@@ -8,6 +8,7 @@ export function useProfile() {
     queryKey: ["profile"],
     queryFn: () => api.me(),
     staleTime: Infinity,
+    retry: false,
   });
 }
 

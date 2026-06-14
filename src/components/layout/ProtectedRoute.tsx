@@ -7,8 +7,8 @@ export function ProtectedRoute() {
 
   if (isLoading) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[#f8faf7] px-6 text-sm text-stone-500">
-        Loading session...
+      <div className="grid min-h-screen place-items-center bg-[#f8faf7]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-stone-200 border-t-moss" />
       </div>
     );
   }
