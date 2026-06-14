@@ -7,6 +7,24 @@ const client = axios.create({
   withCredentials: true
 });
 
+// Redirect to login on 401, except for endpoints that legitimately return 401
+// without implying a broken session (wrong password / wrong 2FA code / session probe).
+const NO_REDIRECT_URLS = new Set(["/auth/login", "/auth/login/2fa", "/auth/me"]);
+
+client.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      axios.isAxiosError(error) &&
+      error.response?.status === 401 &&
+      !NO_REDIRECT_URLS.has(error.config?.url ?? "")
+    ) {
+      window.location.replace("/login");
+    }
+    return Promise.reject(error);
+  }
+);
+
 export class ApiError extends Error {
   constructor(
     message: string,
