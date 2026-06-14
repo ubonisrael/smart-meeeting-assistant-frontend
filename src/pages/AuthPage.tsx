@@ -1,13 +1,17 @@
 import { useState, type FormEvent } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { FileAudio } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../hooks/useAuth";
 import { LabeledInput } from "../components/ui/LabeledInput";
 import { getErrorMessage } from "../utils/error";
+import { useVerifyTwoFactorLogin } from "@/hooks/useProfile";
 
 export function AuthPage() {
-  const { isAuthenticated, isLoading, signIn } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+  const { mutateAsync: verifyTwoFactor } = useVerifyTwoFactorLogin();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [name, setName] = useState("");
@@ -53,7 +57,7 @@ export function AuthPage() {
         return;
       }
 
-      signIn(response);
+      await queryClient.refetchQueries({ queryKey: ["profile"] });
       navigate("/meetings", { replace: true });
     } catch (caught) {
       setError(getErrorMessage(caught, "Authentication failed"));
@@ -68,11 +72,8 @@ export function AuthPage() {
     setLoading(true);
 
     try {
-      const session = await api.verifyTwoFactorLogin({
-        challengeToken: twoFactorChallenge,
-        code: twoFactorCode
-      });
-      signIn(session);
+      await verifyTwoFactor({ challengeToken: twoFactorChallenge, code: twoFactorCode });
+      await queryClient.refetchQueries({ queryKey: ["profile"] });
       navigate("/meetings", { replace: true });
     } catch (caught) {
       setError(getErrorMessage(caught, "Two-factor verification failed"));

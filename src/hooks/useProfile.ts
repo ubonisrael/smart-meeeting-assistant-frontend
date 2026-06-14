@@ -87,6 +87,51 @@ export function useLogOut() {
   });
 }
 
+export function useLogin() {
+  const queryClient = useQueryClient();
+  const { showError, showSuccess } = useFeedbackDialog();
+
+  return useMutation({
+    mutationFn: ({ email, password }: { email: string; password: string }) => api.login({ email, password }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      showSuccess({
+        title: "User Logged In",
+        description: "User successfully logged in.",
+      });
+    },
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      showError({
+        title: "Login failed",
+        description:
+          error.response?.data?.message ||
+          "Unable to log in. Please try again.",
+      });
+    },
+  });
+}
+
+export function useVerifyTwoFactorLogin() {
+  const queryClient = useQueryClient();
+  const { showError } = useFeedbackDialog();
+
+  return useMutation({
+    mutationFn: ({ challengeToken, code }: { challengeToken: string; code: string }) =>
+      api.verifyTwoFactorLogin({ challengeToken, code }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+    onError: (error: { response?: { data?: { message?: string } } }) => {
+      showError({
+        title: "Two-factor verification failed",
+        description:
+          error.response?.data?.message ||
+          "Unable to verify two-factor code. Please try again.",
+      });
+    },
+  });
+}
+
 export function use2FASetup() {
   const { showError } = useFeedbackDialog();
   return useMutation({
