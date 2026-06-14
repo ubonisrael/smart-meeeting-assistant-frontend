@@ -6,7 +6,7 @@ import { getErrorMessage } from "../utils/error";
 
 export function AskPage() {
   const askMeetings = useAskMeetings();
-  const [question, setQuestion] = useState("What did John say about payment processing last month?");
+  const [question, setQuestion] = useState("");
   const [error, setError] = useState("");
 
   async function submit(event: FormEvent) {
