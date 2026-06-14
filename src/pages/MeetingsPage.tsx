@@ -1,3 +1,4 @@
+import { Box, Grid } from "@chakra-ui/react";
 import { Navigate, useParams } from "react-router-dom";
 import { MeetingDetail } from "../components/meetings/MeetingDetail";
 import { MeetingList } from "../components/meetings/MeetingList";
@@ -18,7 +19,7 @@ export function MeetingsPage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+    <Grid gap="6" gridTemplateColumns={{ base: "1fr", lg: "360px 1fr" }}>
       <MeetingList
         meetings={meetings}
         isLoading={meetingsQuery.isLoading}
@@ -26,10 +27,16 @@ export function MeetingsPage() {
         onRefresh={() => void meetingsQuery.refetch()}
         isRefreshing={meetingsQuery.isFetching}
       />
-
-      <section className="min-h-[520px] rounded-md border border-stone-200 bg-white">
+      <Box
+        as="section"
+        minH="520px"
+        rounded="md"
+        borderWidth="1px"
+        borderColor="stone.200"
+        bg="white"
+      >
         {selectedMeeting ? <MeetingDetail meeting={selectedMeeting} /> : <EmptyState />}
-      </section>
-    </div>
+      </Box>
+    </Grid>
   );
 }

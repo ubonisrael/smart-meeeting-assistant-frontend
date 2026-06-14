@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Field, Input } from "@chakra-ui/react";
+import { Box, Button, Field, Flex, Grid, Heading, Input, Link as ChakraLink, Text } from "@chakra-ui/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { FileAudio } from "lucide-react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
@@ -64,7 +64,7 @@ export function AuthPage() {
       await queryClient.refetchQueries({ queryKey: ["profile"] });
       navigate("/meetings", { replace: true });
     } catch {
-      // hook's onError shows the toast
+      // hook's onError shows toast
     }
   }
 
@@ -75,7 +75,7 @@ export function AuthPage() {
       setMode("login");
       registerForm.reset();
     } catch {
-      // hook's onError shows the toast
+      // hook's onError shows toast
     }
   }
 
@@ -85,7 +85,7 @@ export function AuthPage() {
       await queryClient.refetchQueries({ queryKey: ["profile"] });
       navigate("/meetings", { replace: true });
     } catch {
-      // hook's onError shows the toast
+      // hook's onError shows toast
     }
   }
 
@@ -97,165 +97,154 @@ export function AuthPage() {
   }
 
   return (
-    <div className="grid min-h-screen bg-[#f8faf7] text-ink lg:grid-cols-[1fr_440px]">
-      <section className="flex min-h-[42vh] flex-col justify-between border-b border-stone-200 bg-moss px-6 py-8 text-white lg:min-h-screen lg:border-b-0 lg:border-r">
-        <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-md bg-white/15">
+    <Grid minH="100vh" bg="brand.bg" color="ink" gridTemplateColumns={{ base: "1fr", lg: "1fr 440px" }}>
+      {/* Left panel */}
+      <Flex
+        as="section"
+        flexDir="column"
+        justify="space-between"
+        minH={{ base: "42vh", lg: "100vh" }}
+        borderBottom={{ base: "1px solid", lg: "none" }}
+        borderRight={{ lg: "1px solid" }}
+        borderColor="stone.200"
+        bg="moss"
+        px="6"
+        py="8"
+        color="white"
+      >
+        <Flex align="center" gap="3">
+          <Flex h="11" w="11" align="center" justify="center" rounded="md" bg="rgba(255,255,255,0.15)">
             <FileAudio size={24} />
-          </div>
-          <span className="text-lg font-semibold">Smart Meeting Assistant</span>
-        </div>
-        <div className="max-w-2xl">
-          <h2 className="text-4xl font-semibold tracking-normal md:text-5xl">Meeting memory that stays searchable.</h2>
-          <p className="mt-5 max-w-xl text-base leading-7 text-white/80">
+          </Flex>
+          <Text fontSize="lg" fontWeight="semibold">Smart Meeting Assistant</Text>
+        </Flex>
+
+        <Box maxW="2xl">
+          <Heading as="h2" fontSize={{ base: "4xl", md: "5xl" }} fontWeight="semibold" lineHeight="1.15">
+            Meeting memory that stays searchable.
+          </Heading>
+          <Text mt="5" maxW="xl" fontSize="md" lineHeight="7" color="rgba(255,255,255,0.8)">
             Upload recordings, process transcripts in the background, extract the work that matters, and ask direct questions across past conversations.
-          </p>
-        </div>
-        <div className="grid gap-3 text-sm text-white/80 md:grid-cols-3">
+          </Text>
+        </Box>
+
+        <Grid gap="3" gridTemplateColumns={{ base: "1fr", md: "repeat(3,1fr)" }} fontSize="sm" color="rgba(255,255,255,0.8)">
           <Signal label="Transcription" value="Queued" />
           <Signal label="Summary" value="Structured" />
           <Signal label="Search" value="Contextual" />
-        </div>
-      </section>
+        </Grid>
+      </Flex>
 
-      <section className="flex items-center px-6 py-10">
-        <div className="w-full">
+      {/* Right panel */}
+      <Flex as="section" align="center" px="6" py="10">
+        <Box w="full">
           {!twoFactorChallenge && (
-            <div className="mb-6 inline-flex rounded-md border border-stone-300 bg-white p-1">
-              <button
-                type="button"
-                className={`rounded px-3 py-2 text-sm font-medium ${mode === "login" ? "bg-ink text-white" : "text-stone-600"}`}
+            <Flex display="inline-flex" rounded="md" borderWidth="1px" borderColor="stone.300" bg="white" p="1" mb="6">
+              <Button
+                size="sm"
+                variant="ghost"
+                rounded="md"
+                px="3"
+                py="2"
+                fontWeight="medium"
+                bg={mode === "login" ? "ink" : "transparent"}
+                color={mode === "login" ? "white" : "stone.600"}
+                _hover={mode === "login" ? { bg: "ink" } : { bg: "stone.100" }}
                 onClick={() => switchMode("login")}
               >
                 Login
-              </button>
-              <button
-                type="button"
-                className={`rounded px-3 py-2 text-sm font-medium ${mode === "register" ? "bg-ink text-white" : "text-stone-600"}`}
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                rounded="md"
+                px="3"
+                py="2"
+                fontWeight="medium"
+                bg={mode === "register" ? "ink" : "transparent"}
+                color={mode === "register" ? "white" : "stone.600"}
+                _hover={mode === "register" ? { bg: "ink" } : { bg: "stone.100" }}
                 onClick={() => switchMode("register")}
               >
                 Register
-              </button>
-            </div>
+              </Button>
+            </Flex>
           )}
 
-          <h1 className="text-2xl font-semibold">
+          <Heading as="h1" size="xl" fontWeight="semibold">
             {twoFactorChallenge ? "Enter two-factor code" : mode === "login" ? "Welcome back" : "Create account"}
-          </h1>
+          </Heading>
 
           {twoFactorChallenge ? (
-            <form onSubmit={twoFactorForm.handleSubmit(handleTwoFactor)} className="mt-6">
-              <div className="space-y-4">
+            <Box as="form" onSubmit={twoFactorForm.handleSubmit(handleTwoFactor)} mt="6">
+              <Box display="flex" flexDir="column" gap="4">
                 <Field.Root invalid={!!twoFactorForm.formState.errors.code}>
-                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Authenticator code</Field.Label>
-                  <Input
-                    {...twoFactorForm.register("code")}
-                    autoComplete="one-time-code"
-                    inputMode="numeric"
-                  />
-                  <Field.ErrorText className="mt-1 text-xs text-coral">
-                    {twoFactorForm.formState.errors.code?.message}
-                  </Field.ErrorText>
+                  <Field.Label>Authenticator code</Field.Label>
+                  <Input {...twoFactorForm.register("code")} autoComplete="one-time-code" inputMode="numeric" />
+                  <Field.ErrorText>{twoFactorForm.formState.errors.code?.message}</Field.ErrorText>
                 </Field.Root>
-              </div>
-              <button
-                type="submit"
-                disabled={isTwoFactorPending}
-                className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f] disabled:opacity-60"
-              >
+              </Box>
+              <Button type="submit" mt="6" h="11" w="full" rounded="md" bg="moss" color="white" fontWeight="medium" _hover={{ bg: "mossHover" }} disabled={isTwoFactorPending}>
                 {isTwoFactorPending ? "Verifying..." : "Verify code"}
-              </button>
-            </form>
+              </Button>
+            </Box>
           ) : mode === "login" ? (
-            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="mt-6">
-              <div className="space-y-4">
+            <Box as="form" onSubmit={loginForm.handleSubmit(handleLogin)} mt="6">
+              <Box display="flex" flexDir="column" gap="4">
                 <Field.Root invalid={!!loginForm.formState.errors.email}>
-                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Email</Field.Label>
-                  <Input
-                    {...loginForm.register("email")}
-                    type="email"
-                    autoComplete="email"
-                  />
-                  <Field.ErrorText className="mt-1 text-xs text-coral">
-                    {loginForm.formState.errors.email?.message}
-                  </Field.ErrorText>
+                  <Field.Label>Email</Field.Label>
+                  <Input {...loginForm.register("email")} type="email" autoComplete="email" />
+                  <Field.ErrorText>{loginForm.formState.errors.email?.message}</Field.ErrorText>
                 </Field.Root>
                 <Field.Root invalid={!!loginForm.formState.errors.password}>
-                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Password</Field.Label>
-                  <Input
-                    {...loginForm.register("password")}
-                    type="password"
-                    autoComplete="current-password"
-                  />
-                  <Field.ErrorText className="mt-1 text-xs text-coral">
-                    {loginForm.formState.errors.password?.message}
-                  </Field.ErrorText>
+                  <Field.Label>Password</Field.Label>
+                  <Input {...loginForm.register("password")} type="password" autoComplete="current-password" />
+                  <Field.ErrorText>{loginForm.formState.errors.password?.message}</Field.ErrorText>
                 </Field.Root>
-              </div>
+              </Box>
               {registrationMessage && (
-                <p className="mt-4 rounded-md border border-moss/20 bg-moss/10 px-3 py-2 text-sm text-moss">
+                <Text mt="4" rounded="md" borderWidth="1px" borderColor="rgba(36,107,91,0.2)" bg="rgba(36,107,91,0.1)" px="3" py="2" fontSize="sm" color="moss">
                   {registrationMessage}
-                </p>
+                </Text>
               )}
-              <button
-                type="submit"
-                disabled={isLoginPending}
-                className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f] disabled:opacity-60"
-              >
+              <Button type="submit" mt="6" h="11" w="full" rounded="md" bg="moss" color="white" fontWeight="medium" _hover={{ bg: "mossHover" }} disabled={isLoginPending}>
                 {isLoginPending ? "Working..." : "Login"}
-              </button>
-              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-stone-600">
-                <Link className="font-medium text-moss hover:underline" to="/forgot-password">Forgot password?</Link>
-                <Link className="font-medium text-moss hover:underline" to="/resend-verification">Resend verification email</Link>
-              </div>
-            </form>
+              </Button>
+              <Flex mt="4" flexWrap="wrap" gap="4" fontSize="sm" color="stone.600">
+                <ChakraLink as={Link} href="/forgot-password" fontWeight="medium" color="moss" _hover={{ textDecoration: "underline" }}>
+                  Forgot password?
+                </ChakraLink>
+                <ChakraLink as={Link} href="/resend-verification" fontWeight="medium" color="moss" _hover={{ textDecoration: "underline" }}>
+                  Resend verification email
+                </ChakraLink>
+              </Flex>
+            </Box>
           ) : (
-            <form onSubmit={registerForm.handleSubmit(handleRegister)} className="mt-6">
-              <div className="space-y-4">
+            <Box as="form" onSubmit={registerForm.handleSubmit(handleRegister)} mt="6">
+              <Box display="flex" flexDir="column" gap="4">
                 <Field.Root invalid={!!registerForm.formState.errors.name}>
-                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Name</Field.Label>
-                  <Input
-                    {...registerForm.register("name")}
-                    autoComplete="name"
-                  />
-                  <Field.ErrorText className="mt-1 text-xs text-coral">
-                    {registerForm.formState.errors.name?.message}
-                  </Field.ErrorText>
+                  <Field.Label>Name</Field.Label>
+                  <Input {...registerForm.register("name")} autoComplete="name" />
+                  <Field.ErrorText>{registerForm.formState.errors.name?.message}</Field.ErrorText>
                 </Field.Root>
                 <Field.Root invalid={!!registerForm.formState.errors.email}>
-                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Email</Field.Label>
-                  <Input
-                    {...registerForm.register("email")}
-                    type="email"
-                    autoComplete="email"
-                  />
-                  <Field.ErrorText className="mt-1 text-xs text-coral">
-                    {registerForm.formState.errors.email?.message}
-                  </Field.ErrorText>
+                  <Field.Label>Email</Field.Label>
+                  <Input {...registerForm.register("email")} type="email" autoComplete="email" />
+                  <Field.ErrorText>{registerForm.formState.errors.email?.message}</Field.ErrorText>
                 </Field.Root>
                 <Field.Root invalid={!!registerForm.formState.errors.password}>
-                  <Field.Label className="mb-1.5 text-sm font-medium text-stone-700">Password</Field.Label>
-                  <Input
-                    {...registerForm.register("password")}
-                    type="password"
-                    autoComplete="new-password"
-                  />
-                  <Field.ErrorText className="mt-1 text-xs text-coral">
-                    {registerForm.formState.errors.password?.message}
-                  </Field.ErrorText>
+                  <Field.Label>Password</Field.Label>
+                  <Input {...registerForm.register("password")} type="password" autoComplete="new-password" />
+                  <Field.ErrorText>{registerForm.formState.errors.password?.message}</Field.ErrorText>
                 </Field.Root>
-              </div>
-              <button
-                type="submit"
-                disabled={isRegisterPending}
-                className="focus-ring mt-6 inline-flex h-11 w-full items-center justify-center rounded-md bg-moss px-4 font-medium text-white hover:bg-[#1f5c4f] disabled:opacity-60"
-              >
+              </Box>
+              <Button type="submit" mt="6" h="11" w="full" rounded="md" bg="moss" color="white" fontWeight="medium" _hover={{ bg: "mossHover" }} disabled={isRegisterPending}>
                 {isRegisterPending ? "Working..." : "Register"}
-              </button>
-            </form>
+              </Button>
+            </Box>
           )}
-        </div>
-      </section>
-    </div>
+        </Box>
+      </Flex>
+    </Grid>
   );
 }

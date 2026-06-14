@@ -1,19 +1,28 @@
+import { Box, Heading, Text } from "@chakra-ui/react";
 import { SummaryList } from "../ui/SummaryList";
 
 export function SummaryView({ summary }: { summary: Summary | null }) {
   if (!summary) {
-    return <p className="text-sm text-stone-500">Summary will appear after processing completes.</p>;
+    return (
+      <Text fontSize="sm" color="stone.500">
+        Summary will appear after processing completes.
+      </Text>
+    );
   }
 
   return (
-    <div className="space-y-5">
-      <section>
-        <h3 className="mb-2 font-semibold">Overview</h3>
-        <p className="leading-7 text-stone-700">{summary.overview}</p>
-      </section>
+    <Box display="flex" flexDir="column" gap="5">
+      <Box as="section">
+        <Heading as="h3" size="sm" fontWeight="semibold" mb="2">
+          Overview
+        </Heading>
+        <Text lineHeight="7" color="stone.700">
+          {summary.overview}
+        </Text>
+      </Box>
       <SummaryList title="Decisions" items={summary.decisions} />
       <SummaryList title="Risks" items={summary.risks} />
       <SummaryList title="Next steps" items={summary.nextSteps} />
-    </div>
+    </Box>
   );
 }

@@ -1,12 +1,15 @@
+import { Box, Grid, Text } from "@chakra-ui/react";
 import { UserRound } from "lucide-react";
 
 export function EmptyState() {
   return (
-    <div className="grid min-h-[520px] place-items-center px-6 text-center">
-      <div>
-        <UserRound className="mx-auto text-stone-400" size={32} />
-        <p className="mt-3 text-sm text-stone-500">Select a meeting to inspect its transcript, summary, and action items.</p>
-      </div>
-    </div>
+    <Grid minH="520px" placeItems="center" px="6" textAlign="center">
+      <Box>
+        <Box as={UserRound} mx="auto" color="stone.400" boxSize="8" />
+        <Text mt="3" fontSize="sm" color="stone.500">
+          Select a meeting to inspect its transcript, summary, and action items.
+        </Text>
+      </Box>
+    </Grid>
   );
 }

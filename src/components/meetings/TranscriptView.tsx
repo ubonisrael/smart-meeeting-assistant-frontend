@@ -1,20 +1,34 @@
+import { Box, Grid, Text } from "@chakra-ui/react";
 import { formatTime } from "../../utils/format";
 
 export function TranscriptView({ segments }: { segments: TranscriptSegment[] }) {
   if (!segments.length) {
-    return <p className="text-sm text-stone-500">Transcript segments will appear after processing completes.</p>;
+    return (
+      <Text fontSize="sm" color="stone.500">
+        Transcript segments will appear after processing completes.
+      </Text>
+    );
   }
 
   return (
-    <div className="max-h-[560px] space-y-3 overflow-auto pr-2">
+    <Box maxH="560px" display="flex" flexDir="column" gap="3" overflowY="auto" pr="2">
       {segments.map((segment) => (
-        <div key={segment.id} className="grid gap-2 border-b border-stone-100 pb-3 md:grid-cols-[120px_1fr]">
-          <span className="text-sm font-medium text-moss">
+        <Grid
+          key={segment.id}
+          gap="2"
+          borderBottom="1px solid"
+          borderColor="stone.100"
+          pb="3"
+          gridTemplateColumns={{ base: "1fr", md: "120px 1fr" }}
+        >
+          <Text fontSize="sm" fontWeight="medium" color="moss">
             {formatTime(segment.start)} - {formatTime(segment.end)}
-          </span>
-          <p className="leading-7 text-stone-700">{segment.text}</p>
-        </div>
+          </Text>
+          <Text lineHeight="7" color="stone.700">
+            {segment.text}
+          </Text>
+        </Grid>
       ))}
-    </div>
+    </Box>
   );
 }

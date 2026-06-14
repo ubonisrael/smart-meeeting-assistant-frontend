@@ -74,9 +74,9 @@ export function QRCodeVerify({
           maxW="md"
         >
           {backupCodes.map((code, index) => (
-            <div key={index} className="font-mono text-sm">
+            <Text key={index} fontFamily="mono" fontSize="sm">
               {code}
-            </div>
+            </Text>
           ))}
         </SimpleGrid>
 

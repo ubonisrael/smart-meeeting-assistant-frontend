@@ -1,7 +1,17 @@
+import { Box, Grid } from "@chakra-ui/react";
+
 export function LoadingSpinner() {
   return (
-    <div className="grid min-h-screen place-items-center bg-[#f8faf7]">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-stone-200 border-t-moss" />
-    </div>
+    <Grid minH="100vh" placeItems="center" bg="brand.bg">
+      <Box
+        h="10"
+        w="10"
+        rounded="full"
+        borderWidth="4px"
+        borderColor="stone.200"
+        borderTopColor="moss"
+        className="animate-spin"
+      />
+    </Grid>
   );
 }

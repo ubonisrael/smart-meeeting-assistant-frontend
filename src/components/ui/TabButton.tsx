@@ -1,3 +1,5 @@
+import { Button } from "@chakra-ui/react";
+
 type TabButtonProps = {
   active: boolean;
   label: string;
@@ -6,8 +8,19 @@ type TabButtonProps = {
 
 export function TabButton({ active, label, onClick }: TabButtonProps) {
   return (
-    <button className={`rounded px-3 py-2 text-sm font-medium ${active ? "bg-ink text-white" : "text-stone-600"}`} onClick={onClick}>
+    <Button
+      size="sm"
+      variant="ghost"
+      rounded="md"
+      px="3"
+      py="2"
+      fontWeight="medium"
+      bg={active ? "ink" : "transparent"}
+      color={active ? "white" : "stone.600"}
+      _hover={active ? { bg: "ink" } : { bg: "stone.100" }}
+      onClick={onClick}
+    >
       {label}
-    </button>
+    </Button>
   );
 }
