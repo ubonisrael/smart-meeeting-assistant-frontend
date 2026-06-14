@@ -1,5 +1,5 @@
 import { FileAudio, ListChecks, LogOut, MessageSquareText, Settings, Upload } from "lucide-react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useLogOut } from "@/hooks/useProfile";
@@ -7,11 +7,9 @@ import { useLogOut } from "@/hooks/useProfile";
 export function AppLayout() {
   const { session } = useAuth();
   const { mutate: logOut } = useLogOut()
-  const navigate = useNavigate();
 
-  async function handleSignOut() {
+  function handleSignOut() {
     logOut();
-    navigate("/login", { replace: true });
   }
 
   return (

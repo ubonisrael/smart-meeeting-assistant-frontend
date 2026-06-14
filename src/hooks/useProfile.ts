@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../api";
 import { useFeedbackDialog } from "./useFeedbackDialog";
 import { getErrorMessage } from "@/utils/error";
+import { useNavigate } from "react-router-dom";
 
 export function useProfile() {
   return useQuery({
@@ -62,16 +63,18 @@ export function useChangePassword() {
 
 export function useLogOut() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate()
   const { showError, showSuccess } = useFeedbackDialog();
 
   return useMutation({
     mutationFn: () => api.logout(),
     onSuccess: () => {
-      queryClient.clear();
       showSuccess({
         title: "Logged out",
         description: "User successfully logged out.",
       });
+      queryClient.clear();
+      navigate("/login", { replace: true });
     },
     onError: (error: Error) => {
       showError({
