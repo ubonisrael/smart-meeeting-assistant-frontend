@@ -19,11 +19,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { use2FASetup, useDisable2FA } from "@/hooks/useProfile";
 import { QRCodeVerify } from "./qr-code-verify";
 
+const setup2FASchema = z.object({
+  password: z.string().min(1).trim(),
+});
+
 const twoFactorAuthSchema = z.object({
   password: z.string().min(1).trim(),
   code: z.string().length(6).trim(),
 });
 
+type Setup2FAForm = z.infer<typeof setup2FASchema>;
 type TwoFactorAuthForm = z.infer<typeof twoFactorAuthSchema>;
 
 export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
@@ -32,6 +37,16 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
 
   const user = session!.user;
   const isEnabled = user.twoFactorEnabled;
+
+  const {
+    register: setup2FARegister,
+    handleSubmit: handle2FASetup,
+    formState: setup2FAFormState,
+    reset: handle2FASetupReset,
+  } = useForm<Setup2FAForm>({
+    resolver: zodResolver(setup2FASchema),
+    defaultValues: { password: "" },
+  });
 
   const {
     register,
@@ -53,7 +68,6 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
     useDisable2FA();
 
   async function handleDisableTwoFactorAuth(data: TwoFactorAuthForm) {
-    console.log("clicked");
     disableTwoFactorAuth(data, {
       onSuccess: () => {
         reset();
@@ -62,9 +76,12 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
     });
   }
 
-  async function handleSetup2FA() {
-    console.log("clicked");
-    setup2FA();
+  async function handleSetup2FA(data: Setup2FAForm) {
+    setup2FA(data, {
+      onSuccess: function() {
+        handle2FASetupReset()
+      } 
+    });
   }
 
   if (twoFactorData != null) {
@@ -140,7 +157,7 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(handleSetup2FA)}>
+    <form onSubmit={handle2FASetup(handleSetup2FA)}>
       <Box mb={4} color="fg.muted">
         <Text>
           Enabling this will provide an extra security layer to your account.
@@ -174,7 +191,7 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
           {/* maxW="md" on desktop, full width on mobile */}
           <VStack gap="4" width="full" maxW={{ md: "md" }} align="start">
             {/* <Fieldset.Root maxW="md" mt={6}> */}
-            <Field.Root invalid={"password" in errors}>
+            <Field.Root invalid={"password" in setup2FAFormState.errors}>
               <Field.Label>
                 Password
                 <Field.RequiredIndicator />
@@ -192,10 +209,10 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
               >
                 <Input
                   type={showCurrentPassword ? "text" : "password"}
-                  {...register("password")}
+                  {...setup2FARegister("password")}
                 />
               </InputGroup>
-              <Field.ErrorText>{errors["password"]?.message}</Field.ErrorText>
+              <Field.ErrorText>{setup2FAFormState.errors["password"]?.message}</Field.ErrorText>
             </Field.Root>
 
             <Button
@@ -204,8 +221,8 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
               mt="2"
               width={{ base: "full", md: "auto" }}
               type="submit"
-              loading={settingUp2FA }
-              disabled={!isDirty}
+              loading={settingUp2FA}
+              disabled={!setup2FAFormState.isDirty}
             >
               Enable Two-Factor Authentication
             </Button>

@@ -162,9 +162,10 @@ export const api = {
       data: input
     });
   },
-  setupTwoFactor() {
+  setupTwoFactor(data: { password: string }) {
     return request<{ qrCodeUrl: string }>("/auth/2fa/setup", {
-      method: "POST"
+      method: "POST",
+      data
     });
   },
   enableTwoFactor(code: string) {

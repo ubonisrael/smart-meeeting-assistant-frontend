@@ -29,7 +29,10 @@ export function useUpdateProfile() {
     onError: (error: Error) => {
       showError({
         title: "Profile update failed",
-        description: getErrorMessage(error, "Unable to update profile. Please try again."),
+        description: getErrorMessage(
+          error,
+          "Unable to update profile. Please try again.",
+        ),
       });
     },
   });
@@ -55,7 +58,10 @@ export function useChangePassword() {
     onError: (error: Error) => {
       showError({
         title: "Password update failed",
-        description: getErrorMessage(error, "Unable to update password. Please try again."),
+        description: getErrorMessage(
+          error,
+          "Unable to update password. Please try again.",
+        ),
       });
     },
   });
@@ -63,7 +69,7 @@ export function useChangePassword() {
 
 export function useLogOut() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { showError, showSuccess } = useFeedbackDialog();
 
   return useMutation({
@@ -79,7 +85,10 @@ export function useLogOut() {
     onError: (error: Error) => {
       showError({
         title: "Sign out failed",
-        description: getErrorMessage(error, "Unable to log out. Please try again."),
+        description: getErrorMessage(
+          error,
+          "Unable to log out. Please try again.",
+        ),
       });
     },
   });
@@ -89,11 +98,15 @@ export function useRegister() {
   const { showError } = useFeedbackDialog();
 
   return useMutation({
-    mutationFn: (input: { name: string; email: string; password: string }) => api.register(input),
+    mutationFn: (input: { name: string; email: string; password: string }) =>
+      api.register(input),
     onError: (error: Error) => {
       showError({
         title: "Registration failed",
-        description: getErrorMessage(error, "Unable to create account. Please try again."),
+        description: getErrorMessage(
+          error,
+          "Unable to create account. Please try again.",
+        ),
       });
     },
   });
@@ -104,7 +117,8 @@ export function useLogin() {
   const { showError, showSuccess } = useFeedbackDialog();
 
   return useMutation({
-    mutationFn: ({ email, password }: { email: string; password: string }) => api.login({ email, password }),
+    mutationFn: ({ email, password }: { email: string; password: string }) =>
+      api.login({ email, password }),
     onSuccess: (data) => {
       if ("twoFactorRequired" in data) return;
       queryClient.invalidateQueries({ queryKey: ["profile"] });
@@ -116,7 +130,10 @@ export function useLogin() {
     onError: (error: Error) => {
       showError({
         title: "Login failed",
-        description: getErrorMessage(error, "Unable to log in. Please try again."),
+        description: getErrorMessage(
+          error,
+          "Unable to log in. Please try again.",
+        ),
       });
     },
   });
@@ -127,15 +144,23 @@ export function useVerifyTwoFactorLogin() {
   const { showError } = useFeedbackDialog();
 
   return useMutation({
-    mutationFn: ({ challengeToken, code }: { challengeToken: string; code: string }) =>
-      api.verifyTwoFactorLogin({ challengeToken, code }),
+    mutationFn: ({
+      challengeToken,
+      code,
+    }: {
+      challengeToken: string;
+      code: string;
+    }) => api.verifyTwoFactorLogin({ challengeToken, code }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: (error: Error) => {
       showError({
         title: "Two-factor verification failed",
-        description: getErrorMessage(error, "Unable to verify two-factor code. Please try again."),
+        description: getErrorMessage(
+          error,
+          "Unable to verify two-factor code. Please try again.",
+        ),
       });
     },
   });
@@ -144,7 +169,8 @@ export function useVerifyTwoFactorLogin() {
 export function use2FASetup() {
   const { showError } = useFeedbackDialog();
   return useMutation({
-    mutationFn: () => api.setupTwoFactor(),
+    mutationFn: ({ password }: { password: string }) =>
+      api.setupTwoFactor({ password }),
     onSuccess: (data: { qrCodeUrl: string }) => {
       return data;
     },
@@ -172,7 +198,10 @@ export function useEnable2FA() {
     onError: (error: Error) => {
       showError({
         title: "2FA activation failed",
-        description: getErrorMessage(error, "Could not enable two-factor authentication"),
+        description: getErrorMessage(
+          error,
+          "Could not enable two-factor authentication",
+        ),
       });
     },
   });
@@ -197,7 +226,10 @@ export function useDisable2FA() {
     onError: (error: Error) => {
       showError({
         title: "2FA deactivation failed",
-        description: getErrorMessage(error, "Could not disable two-factor authentication"),
+        description: getErrorMessage(
+          error,
+          "Could not disable two-factor authentication",
+        ),
       });
     },
   });

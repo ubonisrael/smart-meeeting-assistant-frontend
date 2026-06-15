@@ -52,8 +52,6 @@ export function Manage2FA() {
           <Dialog.Trigger asChild>
             <Button
               variant="outline"
-              colorPalette={"black"}
-              backgroundColor={"black"}
               size="sm"
               width={{ base: "full", md: "auto" }}
             >
