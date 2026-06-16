@@ -49,10 +49,10 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
   });
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors, isDirty },
-    reset,
+    register: disable2FARegister,
+    handleSubmit: handle2FADisable,
+    formState: disable2FAFormState,
+    reset: disable2FAReset,
   } = useForm<TwoFactorAuthForm>({
     resolver: zodResolver(twoFactorAuthSchema),
     defaultValues: { password: "", code: "" },
@@ -70,7 +70,7 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
   async function handleDisableTwoFactorAuth(data: TwoFactorAuthForm) {
     disableTwoFactorAuth(data, {
       onSuccess: () => {
-        reset();
+        disable2FAReset();
         onDone();
       },
     });
@@ -78,9 +78,9 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
 
   async function handleSetup2FA(data: Setup2FAForm) {
     setup2FA(data, {
-      onSuccess: function() {
-        handle2FASetupReset()
-      }
+      onSuccess: function () {
+        handle2FASetupReset();
+      },
     });
   }
 
@@ -99,7 +99,7 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
 
   if (isEnabled) {
     return (
-      <form onSubmit={handleSubmit(handleDisableTwoFactorAuth)}>
+      <form onSubmit={handle2FADisable(handleDisableTwoFactorAuth)}>
         <Box mb={4} color="fg.muted">
           <Text>
             Disabling this will remove the extra security layer from your
@@ -112,7 +112,7 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
             {/* maxW="md" on desktop, full width on mobile */}
             <VStack gap="4" width="full" maxW={{ md: "md" }} align="start">
               {/* <Fieldset.Root maxW="md" mt={6}> */}
-              <Field.Root invalid={"password" in errors}>
+              <Field.Root invalid={"password" in disable2FAFormState.errors}>
                 <Field.Label>
                   Password
                   <Field.RequiredIndicator />
@@ -132,10 +132,23 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
                 >
                   <Input
                     type={showCurrentPassword ? "text" : "password"}
-                    {...register("password")}
+                    {...disable2FARegister("password")}
                   />
                 </InputGroup>
-                <Field.ErrorText>{errors["password"]?.message}</Field.ErrorText>
+                <Field.ErrorText>
+                  {disable2FAFormState.errors["password"]?.message}
+                </Field.ErrorText>
+              </Field.Root>
+              <Field.Root invalid={!!disable2FAFormState.errors.code}>
+                <Field.Label>Authenticator code</Field.Label>
+                <Input
+                  {...disable2FARegister("code")}
+                  autoComplete="one-time-code"
+                  inputMode="numeric"
+                />
+                <Field.ErrorText>
+                  {disable2FAFormState.errors.code?.message}
+                </Field.ErrorText>
               </Field.Root>
 
               <Button
@@ -145,7 +158,7 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
                 width={{ base: "full", md: "auto" }}
                 type="submit"
                 loading={isDisablingTwoFactor}
-                disabled={!isDirty}
+                disabled={!disable2FAFormState.isDirty}
               >
                 Disable Two-Factor Authentication
               </Button>
@@ -212,7 +225,9 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
                   {...setup2FARegister("password")}
                 />
               </InputGroup>
-              <Field.ErrorText>{setup2FAFormState.errors["password"]?.message}</Field.ErrorText>
+              <Field.ErrorText>
+                {setup2FAFormState.errors["password"]?.message}
+              </Field.ErrorText>
             </Field.Root>
 
             <Button
