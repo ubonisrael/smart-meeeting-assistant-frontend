@@ -4,10 +4,12 @@ import { NavLink, Outlet } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useLogOut } from "@/hooks/useProfile";
+import { useMeetingEvents } from "@/hooks/useMeetingEvents";
 
 export function AppLayout() {
   const { session } = useAuth();
   const { mutate: logOut } = useLogOut();
+  useMeetingEvents();
 
   return (
     <Box minH="100vh" bg="brand.bg" color="ink">
