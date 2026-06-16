@@ -74,7 +74,7 @@ export const api = {
       data: input
     });
   },
-  verifyTwoFactorLogin(input: { challengeToken: string; code: string }) {
+  verifyTwoFactorLogin(input: { challengeToken: string; code: string; backupCodeUsed: boolean }) {
     return request<AuthSession>("/auth/login/2fa", {
       method: "POST",
       data: input

@@ -147,10 +147,12 @@ export function useVerifyTwoFactorLogin() {
     mutationFn: ({
       challengeToken,
       code,
+      backupCodeUsed
     }: {
       challengeToken: string;
       code: string;
-    }) => api.verifyTwoFactorLogin({ challengeToken, code }),
+      backupCodeUsed: boolean;
+    }) => api.verifyTwoFactorLogin({ challengeToken, code, backupCodeUsed }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
