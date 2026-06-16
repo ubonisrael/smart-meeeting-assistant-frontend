@@ -169,7 +169,7 @@ export const api = {
     });
   },
   enableTwoFactor(code: string) {
-    return request<AuthSession>("/auth/2fa/enable", {
+    return request<AuthSession & { backupCodes: string[] }>("/auth/2fa/enable", {
       method: "POST",
       data: { code }
     });

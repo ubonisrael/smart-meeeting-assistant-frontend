@@ -19,18 +19,12 @@ const qrSchema = z.object({
   token: z.string().length(6).trim(),
 });
 
-type TwoFactorData = {
-  totpURI: string;
-  backupCodes: string[];
-};
-
 type QrForm = z.infer<typeof qrSchema>;
 
 export function QRCodeVerify({
   totpURI,
-  backupCodes,
   onDone,
-}: TwoFactorData & { onDone: () => void }) {
+}: { totpURI: string; onDone: () => void }) {
   const {
     register,
     handleSubmit,
@@ -43,6 +37,7 @@ export function QRCodeVerify({
     mutate: verifyQRCode,
     isPending: isVerifyingQRCode,
     isSuccess: successfullyVerified,
+    data: enable2FAData,
   } = useEnable2FA();
 
   const handleQrCode = (data: QrForm) => {
@@ -50,11 +45,13 @@ export function QRCodeVerify({
   };
 
   if (successfullyVerified) {
+    const backupCodes = enable2FAData?.backupCodes ?? [];
     return (
       <>
         <Text color="fg.muted" pb={2} fontSize={"sm"}>
           Save these backup codes in a safe place. You can use them to access
-          your account.
+          your account if your authenticator app is unavailable. Each code can
+          only be used once.
         </Text>
 
         <Clipboard.Root value={backupCodes.join("\n")} mt={4}>
