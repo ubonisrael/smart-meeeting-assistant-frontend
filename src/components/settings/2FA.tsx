@@ -80,14 +80,14 @@ export function TwoFactorAuth({ onDone }: { onDone: () => void }) {
     setup2FA(data, {
       onSuccess: function() {
         handle2FASetupReset()
-      } 
+      }
     });
   }
 
   if (twoFactorData != null) {
     return (
       <QRCodeVerify
-        totpURI={twoFactorData.qrCodeUrl}
+        totpURI={twoFactorData.qrCodeUri}
         backupCodes={[]}
         onDone={() => {
           resetTwoFactorData();

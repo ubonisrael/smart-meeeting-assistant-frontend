@@ -86,6 +86,7 @@ export function AuthPage() {
       navigate("/meetings", { replace: true });
     } catch {
       // hook's onError shows toast
+      setTwoFactorChallenge("")
     }
   }
 

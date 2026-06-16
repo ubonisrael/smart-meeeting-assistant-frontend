@@ -163,7 +163,7 @@ export const api = {
     });
   },
   setupTwoFactor(data: { password: string }) {
-    return request<{ qrCodeUrl: string }>("/auth/2fa/setup", {
+    return request<{ qrCodeUri: string }>("/auth/2fa/setup", {
       method: "POST",
       data
     });

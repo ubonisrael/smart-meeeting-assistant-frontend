@@ -171,7 +171,7 @@ export function use2FASetup() {
   return useMutation({
     mutationFn: ({ password }: { password: string }) =>
       api.setupTwoFactor({ password }),
-    onSuccess: (data: { qrCodeUrl: string }) => {
+    onSuccess: (data: { qrCodeUri: string }) => {
       return data;
     },
     onError: (error: Error) => {
